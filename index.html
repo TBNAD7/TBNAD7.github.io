@@ -3,133 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maze Escape Game</title>
+    <title>Chatbot with OpenAI API</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
         }
-        #game-container {
+        .chat-container {
+            width: 400px;
+            max-width: 90%;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
             text-align: center;
+            font-size: 1.2em;
         }
-        #maze {
-            font-family: monospace;
-            font-size: 24px;
-            line-height: 1;
-            white-space: pre;
-            margin-bottom: 20px;
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
         }
-        button {
-            font-size: 16px;
-            padding: 10px 20px;
-            background-color: #4CAF50;
+        .message {
+            margin-bottom: 10px;
+            display: flex;
+        }
+        .message.user {
+            justify-content: flex-end;
+        }
+        .message.bot {
+            justify-content: flex-start;
+        }
+        .message p {
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .message.user p {
+            background-color: #007bff;
+            color: white;
+        }
+        .message.bot p {
+            background-color: #eaeaea;
+            color: black;
+        }
+        .chat-input {
+            display: flex;
+            border-top: 1px solid #ddd;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            outline: none;
+        }
+        .chat-input button {
+            background-color: #007bff;
             color: white;
             border: none;
+            padding: 10px 20px;
             cursor: pointer;
-            border-radius: 5px;
         }
-        button:hover {
-            background-color: #45a049;
+        .chat-input button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <h1>Maze Escape Game</h1>
-        <div id="maze"></div>
-        <p id="message">Use arrow keys to move. Reach 🚪 to win!</p>
-        <button id="reset-button" style="display: none;">Play Again</button>
+    <div class="chat-container">
+        <div class="chat-header">Chat with AI</div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="Type your message..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
     </div>
 
     <script>
-        const MAZE_SIZE = 20;
-        const PLAYER = '🧑';
-        const WALL = '⬛';
-        const PATH = '⬜';
-        const EXIT = '🚪';
+        const apiKey = '<YOUR_API_KEY>'; // OpenAI API 키를 입력하세요.
+        const messagesContainer = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
 
-        let maze = [];
-        let playerPos = { x: 1, y: 1 };
-        let gameWon = false;
-
-        function generateMaze(size) {
-            const maze = Array(size).fill().map(() => Array(size).fill(WALL));
-
-            function carve(x, y) {
-                const directions = [
-                    [1, 0], [-1, 0], [0, 1], [0, -1]
-                ].sort(() => Math.random() - 0.5);
-
-                for (const [dx, dy] of directions) {
-                    const nx = x + dx * 2, ny = y + dy * 2;
-                    if (nx >= 0 && nx < size && ny >= 0 && ny < size && maze[ny][nx] === WALL) {
-                        maze[y + dy][x + dx] = PATH;
-                        maze[ny][nx] = PATH;
-                        carve(nx, ny);
-                    }
-                }
-            }
-
-            maze[1][1] = PATH;
-            carve(1, 1);
-            maze[size - 2][size - 2] = EXIT;
-
-            return maze;
+        // 메시지를 화면에 출력하는 함수
+        function appendMessage(sender, text) {
+            const message = document.createElement('div');
+            message.classList.add('message', sender);
+            message.innerHTML = `<p>${text}</p>`;
+            messagesContainer.appendChild(message);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        function renderMaze() {
-            const mazeElement = document.getElementById('maze');
-            mazeElement.textContent = maze.map((row, y) => 
-                row.map((cell, x) => 
-                    (x === playerPos.x && y === playerPos.y) ? PLAYER : cell
-                ).join('')
-            ).join('\n');
-        }
+        // 사용자 메시지를 보내고 API 응답을 받는 함수
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
 
-        function movePlayer(dx, dy) {
-            const newX = playerPos.x + dx;
-            const newY = playerPos.y + dy;
+            appendMessage('user', message);
+            userInput.value = '';
 
-            if (newX >= 0 && newX < MAZE_SIZE && newY >= 0 && newY < MAZE_SIZE && maze[newY][newX] !== WALL) {
-                playerPos = { x: newX, y: newY };
-                if (maze[newY][newX] === EXIT) {
-                    gameWon = true;
-                    document.getElementById('message').textContent = 'Congratulations! You escaped the maze!';
-                    document.getElementById('reset-button').style.display = 'inline-block';
-                }
-                renderMaze();
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [{ role: 'user', content: message }]
+                    })
+                });
+
+                const data = await response.json();
+                const reply = data.choices[0].message.content;
+                appendMessage('bot', reply);
+            } catch (error) {
+                console.error('Error:', error);
+                appendMessage('bot', 'Sorry, there was an error.');
             }
         }
-
-        function handleKeyDown(e) {
-            if (gameWon) return;
-
-            switch (e.key) {
-                case 'ArrowUp': movePlayer(0, -1); break;
-                case 'ArrowDown': movePlayer(0, 1); break;
-                case 'ArrowLeft': movePlayer(-1, 0); break;
-                case 'ArrowRight': movePlayer(1, 0); break;
-            }
-        }
-
-        function resetGame() {
-            maze = generateMaze(MAZE_SIZE);
-            playerPos = { x: 1, y: 1 };
-            gameWon = false;
-            document.getElementById('message').textContent = 'Use arrow keys to move. Reach 🚪 to win!';
-            document.getElementById('reset-button').style.display = 'none';
-            renderMaze();
-        }
-
-        document.addEventListener('keydown', handleKeyDown);
-        document.getElementById('reset-button').addEventListener('click', resetGame);
-
-        resetGame();
     </script>
 </body>
 </html>
