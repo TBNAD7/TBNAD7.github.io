@@ -6,7 +6,7 @@ import os
 
 # AWS Bedrock 연결을 위한 설정
 aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")  # 환경 변수에서 액세스 키 가져오기
-aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KET")  # 환경 변수에서 비밀 키 가져오기
+aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")  # 환경 변수에서 비밀 키 가져오기
 region_name = "ap-northeast-2"  # Claude Sonnet 3.5 모델이 제공되는 지역
 
 # Boto3 클라이언트 생성
