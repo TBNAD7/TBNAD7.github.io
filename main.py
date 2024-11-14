@@ -41,11 +41,7 @@ async def generate_quiz(request: QuizRequest):
     try:
         # AWS Bedrock에 Claude Sonnet 3.5 모델 요청
         response = client.invoke_model(
-<<<<<<< HEAD
             modelId='anthropic.claude-3-5-sonnet-20240620-v1:0',  # 모델 ID 업데이트
-=======
-            modelId='claude-sonnet-3.5',
->>>>>>> b853b7d (Update frontend and backend code for quiz chatbot)
             prompt=f"Generate a quiz question based on the following text: {request.text}",
             maxTokens=100
         )

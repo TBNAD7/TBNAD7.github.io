@@ -1,6 +1,6 @@
 async function submitData() {
     const textInput = document.getElementById("textInput").value;
-    const response = await fetch("https://3.35.48.249/generate_quiz", {
+    const response = await fetch("http://3.35.48.249:8000/generate_quiz", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
