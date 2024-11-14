@@ -8,19 +8,38 @@
     <h1>AI 퀴즈 챗봇</h1>
     <input type="text" id="textInput" placeholder="텍스트를 입력하세요">
     <button onclick="submitData()">퀴즈 생성하기</button>
-    <p id="quizOutput"></p>
+    <p id="quizOutput"></p>  <!-- 퀴즈 결과를 출력할 영역 -->
 
     <script>
         async function submitData() {
-            const textInput = document.getElementById("textInput").value;
-            const response = await fetch("http://3.35.48.249:8000/generate_quiz", {
+            const textInput = document.getElementById("textInput").value;  // 텍스트 입력값 가져오기
+            if (!textInput) {
+                alert("입력란이 비어 있습니다.");
+                return;
+            }
+
+            console.log("입력한 텍스트:", textInput);  // 입력한 텍스트 콘솔에 로그로 확인 (디버깅용)
+
+            // 서버로 요청 보내기
+            const response = await fetch("http://your-ec2-ip:8000/generate_quiz", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ text: textInput })
+                body: JSON.stringify({ text: textInput })  // 텍스트를 JSON 형식으로 서버에 전달
             });
-            const result = await response.json();
+
+            // 응답 확인
+            if (!response.ok) {
+                console.error("서버 오류:", response.status, response.statusText);  // 오류 메시지 출력
+                return;
+            }
+
+            // 서버 응답 받기
+            const result = await response.json();  
+            console.log("서버 응답:", result);  // 서버 응답 내용 콘솔에 출력
+
+            // 퀴즈 질문 출력
             document.getElementById("quizOutput").innerText = result.quiz_question;
         }
     </script>
